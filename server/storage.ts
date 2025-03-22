@@ -6,8 +6,18 @@ import {
 } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
+import { scrypt, randomBytes, timingSafeEqual } from "crypto";
+import { promisify } from "util";
 
 const MemoryStore = createMemoryStore(session);
+const scryptAsync = promisify(scrypt);
+
+// Added this function to hash passwords without circular dependency
+async function hashPassword(password: string) {
+  const salt = randomBytes(16).toString("hex");
+  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
+  return `${buf.toString("hex")}.${salt}`;
+}
 
 export interface IStorage {
   // User operations
@@ -70,8 +80,7 @@ export class MemStorage implements IStorage {
     const existingUser = await this.getUserByUsername("Raj");
     if (!existingUser) {
       // Hash the password 'Raj'
-      const salt = "5a7d9c4b3e1f8a2d7c4b3e1f";
-      const hashedPassword = "52193a0f40d2c1ee87ff9ea32f7c13d6c55ad29d55e05d8cea51c4a88b7bae9f11a3f80553cbc82afc97d80c19b099bfb49b3fcc3c53ef0fd11c6e8cfba0bc71.5a7d9c4b3e1f8a2d7c4b3e1f";
+      const hashedPassword = await hashPassword("Raj");
       
       // Create the default user
       this.createUser({
