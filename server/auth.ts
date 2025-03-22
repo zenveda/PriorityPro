@@ -5,7 +5,7 @@ import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
-import { User as SelectUser } from "@shared/schema";
+import { User as SelectUser, type User } from "@shared/schema";
 
 declare global {
   namespace Express {
@@ -31,11 +31,12 @@ async function comparePasswords(supplied: string, stored: string) {
 export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || "prioritypro-session-secret",
-    resave: false,
-    saveUninitialized: false,
+    resave: true,
+    saveUninitialized: true,
     store: storage.sessionStore,
     cookie: {
       maxAge: 1000 * 60 * 60 * 24, // 1 day
+      secure: false, // Set to true in production with HTTPS
     }
   };
 
@@ -76,18 +77,26 @@ export function setupAuth(app: Express) {
         return res.status(400).json({ message: "Username already exists" });
       }
 
-      const user = await storage.createUser({
+      // Make sure role is not undefined
+      const userData = {
         ...req.body,
+        role: req.body.role || "User", // Default role if not provided
         password: await hashPassword(req.body.password),
-      });
+      };
+
+      const user = await storage.createUser(userData);
 
       // Don't send the password back
       const userWithoutPassword = { ...user };
       delete (userWithoutPassword as any).password;
 
+      // Log the user in after registration
       req.login(user, (err) => {
         if (err) return next(err);
-        res.status(201).json(userWithoutPassword);
+        req.session.save((saveErr) => {
+          if (saveErr) return next(saveErr);
+          res.status(201).json(userWithoutPassword);
+        });
       });
     } catch (error) {
       next(error);
@@ -95,7 +104,7 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err, user, info) => {
+    passport.authenticate("local", (err: Error | null, user: User | false, info: any) => {
       if (err) return next(err);
       if (!user) return res.status(401).json({ message: "Invalid credentials" });
       
@@ -106,7 +115,11 @@ export function setupAuth(app: Express) {
         const userWithoutPassword = { ...user };
         delete (userWithoutPassword as any).password;
         
-        res.status(200).json(userWithoutPassword);
+        // Explicitly save the session before responding
+        req.session.save((saveErr) => {
+          if (saveErr) return next(saveErr);
+          res.status(200).json(userWithoutPassword);
+        });
       });
     })(req, res, next);
   });
@@ -114,7 +127,10 @@ export function setupAuth(app: Express) {
   app.post("/api/logout", (req, res, next) => {
     req.logout((err) => {
       if (err) return next(err);
-      res.sendStatus(200);
+      req.session.destroy((destroyErr) => {
+        if (destroyErr) return next(destroyErr);
+        res.sendStatus(200);
+      });
     });
   });
 
