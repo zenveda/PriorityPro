@@ -107,11 +107,30 @@ export function PrioritizationMatrix({ features }: PrioritizationMatrixProps) {
     const xPercent = feature.effortScore / 100;
     const yPercent = 1 - (feature.impactScore / 100);
     
-    // Calculate position within the matrix
-    // Add some padding to keep cards fully inside the matrix
-    const padding = 30;
-    const x = Math.max(padding, Math.min(matrixBounds.width - padding, xPercent * matrixBounds.width));
-    const y = Math.max(padding, Math.min(matrixBounds.height - padding, yPercent * matrixBounds.height));
+    // Calculate position within the matrix with better padding distribution
+    // Add more padding on the right side where cards were overlapping
+    const paddingLeft = 30;
+    const paddingRight = 70; // Increased right padding
+    const paddingTop = 30;
+    const paddingBottom = 30;
+    
+    // Adjust x position based on effort score with higher padding on the right
+    const x = Math.max(
+      paddingLeft, 
+      Math.min(
+        matrixBounds.width - (xPercent > 0.5 ? paddingRight : paddingLeft), 
+        xPercent * matrixBounds.width
+      )
+    );
+    
+    // Adjust y position with consistent padding
+    const y = Math.max(
+      paddingTop, 
+      Math.min(
+        matrixBounds.height - paddingBottom, 
+        yPercent * matrixBounds.height
+      )
+    );
     
     return { x, y };
   };
@@ -157,9 +176,10 @@ export function PrioritizationMatrix({ features }: PrioritizationMatrixProps) {
     setDraggingFeature(null);
   };
 
-  // Filter features by quadrants
+  // Filter features by quadrants and limit per quadrant
   const getQuadrantFeatures = (quadrantId: string) => {
-    return features.filter(feature => {
+    // Filter features by quadrant
+    const quadrantFeatures = features.filter(feature => {
       switch (quadrantId) {
         case "q1": // High Impact, Low Effort
           return feature.impactScore >= 50 && feature.effortScore < 50;
@@ -173,6 +193,9 @@ export function PrioritizationMatrix({ features }: PrioritizationMatrixProps) {
           return false;
       }
     });
+    
+    // Sort by total score to show highest priority features first
+    return quadrantFeatures.sort((a, b) => b.totalScore - a.totalScore);
   };
 
   return (

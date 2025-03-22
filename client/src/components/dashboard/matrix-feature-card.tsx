@@ -43,7 +43,7 @@ export function MatrixFeatureCard({
     <div 
       ref={cardRef}
       className={cn(
-        "rounded-md p-2 shadow-sm w-40 h-auto",
+        "rounded-md p-1.5 shadow-sm w-28 h-auto",
         getBackgroundColor(),
         isDraggable ? "cursor-move transform-origin-center transition-all duration-150 hover:scale-[1.02] hover:shadow-md" : "",
         className
@@ -51,13 +51,14 @@ export function MatrixFeatureCard({
       draggable={isDraggable}
       onDragStart={handleDragStart}
       onClick={handleClick}
+      title={feature.title}
     >
-      <div className="text-center truncate">
-        <p className="font-medium text-sm truncate" title={feature.title}>
+      <div className="text-center">
+        <p className="font-medium text-xs leading-tight line-clamp-2" title={feature.title}>
           {feature.title}
         </p>
-        <div className="text-xs text-neutral-600 mt-1">
-          Score: {feature.totalScore}
+        <div className="text-xs text-neutral-600 mt-0.5">
+          {feature.totalScore}
         </div>
       </div>
     </div>
