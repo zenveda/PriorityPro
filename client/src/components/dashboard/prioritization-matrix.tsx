@@ -9,10 +9,10 @@ interface PrioritizationMatrixProps {
 export function PrioritizationMatrix({ features }: PrioritizationMatrixProps) {
   const { toast } = useToast();
 
-  // Filter features by quadrants and limit per quadrant
+  // Filter features by quadrants
   const getQuadrantFeatures = (quadrantId: string) => {
     // Filter features by quadrant
-    const quadrantFeatures = features.filter(feature => {
+    const filteredFeatures = features.filter(feature => {
       switch (quadrantId) {
         case "q1": // High Impact, Low Effort
           return feature.impactScore >= 50 && feature.effortScore < 50;
@@ -28,7 +28,7 @@ export function PrioritizationMatrix({ features }: PrioritizationMatrixProps) {
     });
     
     // Sort by total score to show highest priority features first
-    return quadrantFeatures.sort((a, b) => b.totalScore - a.totalScore);
+    return filteredFeatures.sort((a, b) => b.totalScore - a.totalScore);
   };
 
   return (
