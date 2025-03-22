@@ -73,6 +73,9 @@ export class MemStorage implements IStorage {
     
     // Create default user (for development purposes only)
     this.createDefaultUser();
+    
+    // Seed initial feature data for demonstration
+    this.seedInitialData();
   }
   
   // Creates a default user for testing
@@ -242,6 +245,208 @@ export class MemStorage implements IStorage {
     defaultCriteria.forEach(criteria => {
       this.createScoringCriteria(criteria);
     });
+  }
+  
+  private async seedInitialData() {
+    // Only seed if there are no features yet
+    const features = await this.getFeatures();
+    if (features.length > 0) {
+      console.log("Features already exist, skipping initial data seed");
+      return;
+    }
+    
+    console.log("Seeding initial feature data...");
+    
+    // Sample AI SDR feature requests with B2B SaaS context
+    const aiSdrFeatures = [
+      {
+        title: "AI-Powered Lead Qualification",
+        description: "Implement AI algorithms to automatically qualify leads based on fit, intent, and engagement data. Should integrate with existing CRM data.",
+        createdById: 1, // Default user ID
+        impactScore: 90,
+        effortScore: 70,
+        totalScore: 0, // Will be calculated
+        status: "planning",
+        customerType: "enterprise",
+        customerCount: 15,
+        category: "ai-feature",
+        tags: ["ai", "lead-qualification", "automation"]
+      },
+      {
+        title: "Multi-Channel Outreach Automation",
+        description: "Create a system to automatically execute personalized outreach across email, LinkedIn, phone, and SMS based on prospect preferences and engagement patterns.",
+        createdById: 1,
+        impactScore: 85,
+        effortScore: 65,
+        totalScore: 0,
+        status: "research",
+        customerType: "enterprise",
+        customerCount: 12,
+        category: "communication",
+        tags: ["multi-channel", "personalization", "automation"]
+      },
+      {
+        title: "Sentiment Analysis for Prospect Responses",
+        description: "Use NLP to analyze prospect responses and determine sentiment, interest level, and objections to inform follow-up strategy.",
+        createdById: 1,
+        impactScore: 75,
+        effortScore: 45,
+        totalScore: 0,
+        status: "pending",
+        customerType: "mid-market",
+        customerCount: 8,
+        category: "ai-feature",
+        tags: ["nlp", "sentiment-analysis", "response-handling"]
+      },
+      {
+        title: "AI Meeting Scheduler with Contextual Awareness",
+        description: "Develop an AI assistant that can automatically schedule meetings by analyzing calendar availability, communication history, and conversation context.",
+        createdById: 1,
+        impactScore: 80,
+        effortScore: 40,
+        totalScore: 0,
+        status: "development",
+        customerType: "all",
+        customerCount: 25,
+        category: "productivity",
+        tags: ["meeting-scheduler", "calendar-integration", "ai-assistant"]
+      },
+      {
+        title: "Automated Competitive Intelligence",
+        description: "Create a system that monitors prospect engagement with competitors and automatically provides relevant competitive intelligence to SDRs.",
+        createdById: 1,
+        impactScore: 70,
+        effortScore: 80,
+        totalScore: 0,
+        status: "research",
+        customerType: "enterprise",
+        customerCount: 7,
+        category: "market-intelligence",
+        tags: ["competitive-intel", "market-monitoring", "sales-enablement"]
+      },
+      {
+        title: "Personalized Outreach Content Generator",
+        description: "AI tool that generates personalized outreach messages based on prospect data, company news, and historical engagement patterns.",
+        createdById: 1,
+        impactScore: 95,
+        effortScore: 60,
+        totalScore: 0,
+        status: "planning",
+        customerType: "all",
+        customerCount: 30,
+        category: "content",
+        tags: ["content-generation", "personalization", "outreach"]
+      },
+      {
+        title: "Predictive Lead Scoring",
+        description: "Implement machine learning models to predict the likelihood of conversion for each lead based on historical data and current engagement.",
+        createdById: 1,
+        impactScore: 85,
+        effortScore: 75,
+        totalScore: 0,
+        status: "pending",
+        customerType: "enterprise",
+        customerCount: 10,
+        category: "ai-feature",
+        tags: ["predictive-analytics", "lead-scoring", "ml"]
+      },
+      {
+        title: "Voice Analytics for SDR Calls",
+        description: "Implement real-time voice analysis tools for SDR calls to provide coaching on tone, pace, and effectiveness with auto-generated improvement recommendations.",
+        createdById: 1,
+        impactScore: 65,
+        effortScore: 85,
+        totalScore: 0,
+        status: "backlog",
+        customerType: "mid-market",
+        customerCount: 5,
+        category: "training",
+        tags: ["voice-analytics", "coaching", "call-analysis"]
+      },
+      {
+        title: "Account-Based Intelligence Dashboard",
+        description: "Create a centralized dashboard that aggregates all available intelligence on target accounts including key contacts, recent news, and engagement history.",
+        createdById: 1,
+        impactScore: 75,
+        effortScore: 55,
+        totalScore: 0,
+        status: "development",
+        customerType: "enterprise",
+        customerCount: 18,
+        category: "dashboard",
+        tags: ["abi", "account-intelligence", "dashboard"]
+      },
+      {
+        title: "Automated Objection Handling Assistant",
+        description: "AI tool that suggests appropriate responses to common objections in real-time during prospect conversations based on successful past interactions.",
+        createdById: 1,
+        impactScore: 80,
+        effortScore: 50,
+        totalScore: 0,
+        status: "planning",
+        customerType: "all",
+        customerCount: 22,
+        category: "sales-enablement",
+        tags: ["objection-handling", "real-time-assistance", "conversation-intelligence"]
+      }
+    ];
+    
+    // Create all features
+    const createdFeatures = [];
+    for (const feature of aiSdrFeatures) {
+      try {
+        const createdFeature = await this.createFeature(feature);
+        console.log(`Seeded feature: ${createdFeature.title}`);
+        createdFeatures.push(createdFeature);
+      } catch (error) {
+        console.error(`Failed to seed feature "${feature.title}":`, error);
+      }
+    }
+    
+    // Add sample comments
+    if (createdFeatures.length > 0) {
+      const sampleComments = [
+        {
+          featureId: 1,
+          userId: 1,
+          content: "This could significantly increase our conversion rates. Enterprise customers particularly mentioned this in the last advisory board."
+        },
+        {
+          featureId: 1,
+          userId: 1,
+          content: "We should integrate this with our existing lead scoring system to avoid creating a parallel workflow."
+        },
+        {
+          featureId: 2,
+          userId: 1,
+          content: "Multi-channel orchestration will be a key differentiator. Let's prioritize this for Q2."
+        },
+        {
+          featureId: 6,
+          userId: 1,
+          content: "The content generation capability should leverage our existing messaging library to maintain brand consistency."
+        },
+        {
+          featureId: 7,
+          userId: 1,
+          content: "We'll need to coordinate with the data science team for this. Initial models show promising accuracy."
+        }
+      ];
+      
+      for (const comment of sampleComments) {
+        try {
+          await this.createComment({
+            ...comment,
+            featureId: createdFeatures[comment.featureId - 1].id
+          });
+          console.log(`Seeded comment for feature ID: ${comment.featureId}`);
+        } catch (error) {
+          console.error("Failed to seed comment:", error);
+        }
+      }
+    }
+    
+    console.log(`Successfully seeded ${createdFeatures.length} AI SDR features!`);
   }
 }
 
