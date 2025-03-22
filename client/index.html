@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PriorityPro - B2B SaaS Feature Prioritization</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --radius: 0.5rem;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #F3F4F6;
+    }
+    
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background-color: #9CA3AF;
+      border-radius: 6px;
+    }
+    
+    .matrix-quadrant {
+      position: relative;
+      border: 1px solid #E5E7EB;
+      transition: all 0.2s;
+    }
+    
+    .matrix-quadrant:hover {
+      background-color: rgba(243, 244, 246, 0.5);
+    }
+    
+    .feature-card {
+      cursor: move;
+      transform-origin: center;
+      transition: all 0.15s ease;
+    }
+    
+    .feature-card:hover {
+      transform: scale(1.02);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+</html>
