@@ -9,7 +9,14 @@ import { User } from "@shared/schema";
 
 declare global {
   namespace Express {
-    interface User extends User {}
+    // Define the User interface to match the schema
+    interface User {
+      id: number;
+      username: string;
+      password: string;
+      name: string;
+      role: string;
+    }
   }
 }
 
@@ -28,7 +35,7 @@ async function comparePasswords(supplied: string, stored: string) {
   return timingSafeEqual(hashedBuf, suppliedBuf);
 }
 
-export function setupAuth(app: Express) {
+export async function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || "prioritypro-session-secret",
     resave: true,

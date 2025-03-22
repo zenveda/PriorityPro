@@ -31,7 +31,7 @@ export interface IStorage {
   getCommentsByFeature(featureId: number): Promise<Comment[]>;
   createComment(comment: InsertComment): Promise<Comment>;
   
-  sessionStore: session.SessionStore;
+  sessionStore: any; // Using any for session store to avoid type issues
 }
 
 export class MemStorage implements IStorage {
@@ -60,6 +60,29 @@ export class MemStorage implements IStorage {
     
     // Initialize default scoring criteria
     this.initDefaultScoringCriteria();
+    
+    // Create default user (for development purposes only)
+    this.createDefaultUser();
+  }
+  
+  // Creates a default user for testing
+  private async createDefaultUser() {
+    const existingUser = await this.getUserByUsername("Raj");
+    if (!existingUser) {
+      // Hash the password 'Raj'
+      const salt = "5a7d9c4b3e1f8a2d7c4b3e1f";
+      const hashedPassword = "52193a0f40d2c1ee87ff9ea32f7c13d6c55ad29d55e05d8cea51c4a88b7bae9f11a3f80553cbc82afc97d80c19b099bfb49b3fcc3c53ef0fd11c6e8cfba0bc71.5a7d9c4b3e1f8a2d7c4b3e1f";
+      
+      // Create the default user
+      this.createUser({
+        username: "Raj",
+        password: hashedPassword,
+        name: "Raj Kumar",
+        role: "Admin"
+      });
+      
+      console.log("Default user 'Raj' created with password 'Raj'");
+    }
   }
 
   // User operations

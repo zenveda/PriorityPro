@@ -8,7 +8,7 @@ import { fromZodError } from "zod-validation-error";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
-  setupAuth(app);
+  await setupAuth(app);
 
   // Feature routes
   app.get("/api/features", async (req, res) => {
