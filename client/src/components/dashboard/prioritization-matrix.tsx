@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Feature } from "@shared/schema";
-import { FeatureCard } from "./feature-card";
+import { MatrixFeatureCard } from "./matrix-feature-card";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useMutation } from "@tanstack/react-query";
@@ -215,11 +215,10 @@ export function PrioritizationMatrix({ features }: PrioritizationMatrixProps) {
                       top: `${position.y}px`,
                       left: `${position.x}px`,
                       transform: 'translate(-50%, -50%)',
-                      width: '180px',
                       zIndex: draggingFeature?.id === feature.id ? 10 : 1
                     }}
                   >
-                    <FeatureCard 
+                    <MatrixFeatureCard 
                       feature={feature} 
                       isDraggable={true}
                       onDragStart={handleDragStart}
