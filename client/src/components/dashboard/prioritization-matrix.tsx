@@ -192,16 +192,16 @@ export function PrioritizationMatrix({ features }: PrioritizationMatrixProps) {
           {quadrants.map(quadrant => (
             <div key={quadrant.id} className={quadrant.className}>
               <div className="absolute top-2 left-4 text-xs font-medium text-neutral-600">
-                {quadrantId === "q1" && quadrant.label}
+                {quadrant.id === "q1" && quadrant.label}
               </div>
               <div className="absolute top-2 right-4 text-xs font-medium text-neutral-600">
-                {quadrantId === "q2" && quadrant.label}
+                {quadrant.id === "q2" && quadrant.label}
               </div>
               <div className="absolute bottom-2 left-4 text-xs font-medium text-neutral-600">
-                {quadrantId === "q3" && quadrant.label}
+                {quadrant.id === "q3" && quadrant.label}
               </div>
               <div className="absolute bottom-2 right-4 text-xs font-medium text-neutral-600">
-                {quadrantId === "q4" && quadrant.label}
+                {quadrant.id === "q4" && quadrant.label}
               </div>
               
               {/* Feature cards within each quadrant */}
