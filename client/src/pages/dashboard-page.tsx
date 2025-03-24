@@ -16,6 +16,9 @@ import { Link } from "wouter";
 export default function DashboardPage() {
   const { user } = useAuth();
   const [isFeatureFormOpen, setIsFeatureFormOpen] = useState(false);
+  const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [filterBy, setFilterBy] = useState<string>("all");
   
   // Fetch features
   const { data: features = [], isLoading: isLoadingFeatures } = useQuery<Feature[]>({
@@ -44,10 +47,65 @@ export default function DashboardPage() {
   const customerRequests = features.filter(f => f.customerType !== "internal").length;
   const pendingReview = features.filter(f => f.status === "pending").length;
 
+  // Get filtered and sorted features
+  const filteredAndSortedFeatures = features
+    .filter(feature => {
+      if (filterBy === "all") return true;
+      if (filterBy === "high-impact") return feature.impactScore >= 75;
+      if (filterBy === "quick-wins") return feature.impactScore >= 75 && feature.effortScore < 50;
+      if (filterBy === "customer") return feature.customerType !== "internal";
+      return true;
+    })
+    .sort((a, b) => {
+      return sortOrder === "desc" 
+        ? b.totalScore - a.totalScore 
+        : a.totalScore - b.totalScore;
+    });
+
   // Get top features by score
-  const topFeatures = [...features]
-    .sort((a, b) => b.totalScore - a.totalScore)
-    .slice(0, 6);
+  const topFeatures = filteredAndSortedFeatures.slice(0, 6);
+
+  // Loading states
+  const isLoading = isLoadingFeatures;
+
+  const handleFeatureClick = (feature: Feature) => {
+    setSelectedFeature(feature);
+    setIsFeatureFormOpen(true);
+  };
+
+  const handleFormClose = () => {
+    setIsFeatureFormOpen(false);
+    setSelectedFeature(null);
+  };
+
+  const toggleSortOrder = () => {
+    setSortOrder(sortOrder === "desc" ? "asc" : "desc");
+  };
+
+  const handleFilterClick = () => {
+    const filters = ["all", "high-impact", "quick-wins", "customer"];
+    const currentIndex = filters.indexOf(filterBy);
+    const nextIndex = (currentIndex + 1) % filters.length;
+    setFilterBy(filters[nextIndex]);
+  };
+
+  const getFilterIcon = () => {
+    switch (filterBy) {
+      case "high-impact": return "ri-rocket-line";
+      case "quick-wins": return "ri-flashlight-line";
+      case "customer": return "ri-user-star-line";
+      default: return "ri-filter-3-line";
+    }
+  };
+
+  const getFilterTooltip = () => {
+    switch (filterBy) {
+      case "high-impact": return "Showing high impact features";
+      case "quick-wins": return "Showing quick wins";
+      case "customer": return "Showing customer requests";
+      default: return "Showing all features";
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -114,21 +172,6 @@ export default function DashboardPage() {
           <div className="bg-white rounded-lg shadow-sm p-5">
             <div className="flex justify-between items-center mb-5">
               <h3 className="font-semibold text-lg">Prioritization Matrix</h3>
-              <div className="flex items-center space-x-3">
-                <div className="relative">
-                  <select className="appearance-none block pl-3 pr-10 py-1.5 border border-neutral-200 rounded-md bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
-                    <option>Impact vs. Effort</option>
-                    <option>Value vs. Complexity</option>
-                    <option>Cost vs. Benefit</option>
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-neutral-400">
-                    <i className="ri-arrow-down-s-line"></i>
-                  </div>
-                </div>
-                <Button variant="ghost" size="icon">
-                  <SlidersHorizontal className="h-5 w-5 text-neutral-600" />
-                </Button>
-              </div>
             </div>
             
             {isLoadingFeatures ? (
@@ -136,7 +179,10 @@ export default function DashboardPage() {
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : (
-              <PrioritizationMatrix features={features} />
+              <PrioritizationMatrix 
+                features={features} 
+                onFeatureClick={handleFeatureClick}
+              />
             )}
           </div>
         </div>
@@ -147,11 +193,33 @@ export default function DashboardPage() {
             <div className="p-5 border-b border-neutral-200 flex justify-between items-center">
               <h3 className="font-semibold text-lg">Feature Requests</h3>
               <div className="flex items-center space-x-2">
-                <Button variant="ghost" size="icon" className="text-neutral-600 hover:text-neutral-800">
-                  <i className="ri-filter-3-line"></i>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="text-neutral-600 hover:text-neutral-800"
+                  onClick={handleFilterClick}
+                  title={getFilterTooltip()}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <i className={getFilterIcon()}></i>
+                  )}
                 </Button>
-                <Button variant="ghost" size="icon" className="text-neutral-600 hover:text-neutral-800">
-                  <i className="ri-sort-desc"></i>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="text-neutral-600 hover:text-neutral-800"
+                  onClick={toggleSortOrder}
+                  title={`Sort by score (${sortOrder === "desc" ? "highest first" : "lowest first"})`}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <i className={`ri-sort-${sortOrder}`}></i>
+                  )}
                 </Button>
               </div>
             </div>
@@ -186,7 +254,14 @@ export default function DashboardPage() {
                 
                 <div className="p-4 border-t border-neutral-200">
                   <Link href="/features">
-                    <Button variant="outline" className="w-full">
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : null}
                       View All Feature Requests
                     </Button>
                   </Link>
@@ -268,14 +343,20 @@ export default function DashboardPage() {
             </div>
             
             <div className="mt-4 text-center">
-              <Button variant="link">View All Discussions</Button>
+              <Link href="/features">
+                <Button variant="link">View All Discussions</Button>
+              </Link>
             </div>
           </div>
         </div>
       </div>
       
       {/* Feature Form Dialog */}
-      <FeatureForm open={isFeatureFormOpen} onClose={() => setIsFeatureFormOpen(false)} />
+      <FeatureForm 
+        open={isFeatureFormOpen} 
+        onClose={handleFormClose}
+        feature={selectedFeature}
+      />
     </DashboardLayout>
   );
 }

@@ -19,12 +19,34 @@ export function MatrixFeatureCard({
 }: MatrixFeatureCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   
-  // Determine card color based on priority level
-  const getBackgroundColor = () => {
-    if (feature.totalScore >= 75) return "bg-success/20";
-    if (feature.totalScore >= 60) return "bg-warning/20";
-    if (feature.totalScore >= 40) return "bg-neutral-200/80";
-    return "bg-danger/20";
+  // Enhanced color scheme based on priority level
+  const getCardStyle = () => {
+    if (feature.totalScore >= 75) {
+      return {
+        background: "bg-gradient-to-br from-emerald-50 to-emerald-100",
+        border: "border-2 border-emerald-400",
+        text: "text-emerald-700"
+      };
+    }
+    if (feature.totalScore >= 60) {
+      return {
+        background: "bg-gradient-to-br from-amber-50 to-amber-100",
+        border: "border-2 border-amber-400",
+        text: "text-amber-700"
+      };
+    }
+    if (feature.totalScore >= 40) {
+      return {
+        background: "bg-gradient-to-br from-blue-50 to-blue-100",
+        border: "border-2 border-blue-400",
+        text: "text-blue-700"
+      };
+    }
+    return {
+      background: "bg-gradient-to-br from-red-50 to-red-100",
+      border: "border-2 border-red-400",
+      text: "text-red-700"
+    };
   };
 
   const handleDragStart = (e: React.DragEvent) => {
@@ -39,13 +61,17 @@ export function MatrixFeatureCard({
     }
   };
 
+  const cardStyle = getCardStyle();
+
   return (
     <div 
       ref={cardRef}
       className={cn(
-        "rounded-md p-1.5 shadow-sm w-28 h-auto",
-        getBackgroundColor(),
-        isDraggable ? "cursor-move transform-origin-center transition-all duration-150 hover:scale-[1.02] hover:shadow-md" : "",
+        "rounded-lg p-2 shadow-lg w-28 h-auto transition-all duration-200",
+        cardStyle.background,
+        cardStyle.border,
+        isDraggable ? "cursor-move hover:scale-105 hover:shadow-xl" : "",
+        "hover:ring-2 hover:ring-offset-2",
         className
       )}
       draggable={isDraggable}
@@ -54,10 +80,17 @@ export function MatrixFeatureCard({
       title={feature.title}
     >
       <div className="text-center">
-        <p className="font-medium text-xs leading-tight line-clamp-2" title={feature.title}>
+        <p className={cn(
+          "font-semibold text-xs leading-tight line-clamp-2 mb-1",
+          cardStyle.text
+        )} title={feature.title}>
           {feature.title}
         </p>
-        <div className="text-xs text-neutral-600 mt-0.5">
+        <div className={cn(
+          "text-xs font-medium rounded-full px-2 py-0.5 inline-block",
+          cardStyle.background,
+          cardStyle.text
+        )}>
           {feature.totalScore}
         </div>
       </div>

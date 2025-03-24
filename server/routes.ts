@@ -61,8 +61,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Feature not found" });
       }
       
-      const validatedData = insertFeatureSchema.partial().parse(req.body);
+      // Validate the update data
+      const validatedData = insertFeatureSchema.partial().parse({
+        ...req.body,
+        // Ensure these fields are numbers
+        impactScore: typeof req.body.impactScore === 'number' ? req.body.impactScore : parseInt(req.body.impactScore),
+        effortScore: typeof req.body.effortScore === 'number' ? req.body.effortScore : parseInt(req.body.effortScore),
+        customerCount: typeof req.body.customerCount === 'number' ? req.body.customerCount : parseInt(req.body.customerCount),
+      });
+
+      // Update the feature
       const updatedFeature = await storage.updateFeature(id, validatedData);
+      if (!updatedFeature) {
+        return res.status(500).json({ message: "Failed to update feature" });
+      }
       
       res.json(updatedFeature);
     } catch (error) {
@@ -70,6 +82,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const validationError = fromZodError(error);
         return res.status(400).json({ message: validationError.message });
       }
+      console.error("Feature update error:", error);
       res.status(500).json({ message: "Failed to update feature" });
     }
   });

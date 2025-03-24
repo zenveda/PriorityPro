@@ -27,6 +27,7 @@ import { useToast } from "@/hooks/use-toast";
 export default function FeatureRequestsPage() {
   const { toast } = useToast();
   const [isFeatureFormOpen, setIsFeatureFormOpen] = useState(false);
+  const [selectedFeature, setSelectedFeature] = useState<Feature | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [sortBy, setSortBy] = useState<string>("totalScore");
@@ -101,14 +102,34 @@ export default function FeatureRequestsPage() {
     setSortOrder(sortOrder === "desc" ? "asc" : "desc");
   };
 
+  const handleEditFeature = (feature: Feature) => {
+    setSelectedFeature(feature);
+    setIsFeatureFormOpen(true);
+  };
+
+  const handleFormClose = () => {
+    setIsFeatureFormOpen(false);
+    setSelectedFeature(null);
+  };
+
+  // Loading states
+  const isLoading = isLoadingFeatures || deleteMutation.isPending;
+
   return (
     <DashboardLayout>
       <div className="mb-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
           <h2 className="text-2xl font-semibold text-neutral-800">Feature Requests</h2>
           <div className="mt-4 md:mt-0">
-            <Button onClick={() => setIsFeatureFormOpen(true)}>
-              <Plus className="mr-1.5 h-4 w-4" />
+            <Button 
+              onClick={() => setIsFeatureFormOpen(true)}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Plus className="mr-1.5 h-4 w-4" />
+              )}
               Add New Feature
             </Button>
           </div>
@@ -283,17 +304,31 @@ export default function FeatureRequestsPage() {
                     </div>
                   </div>
                   <div className="col-span-1 flex justify-end space-x-1">
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                      <i className="ri-edit-line text-neutral-500"></i>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 w-8 p-0"
+                      onClick={() => handleEditFeature(feature)}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-neutral-500" />
+                      ) : (
+                        <i className="ri-edit-line text-neutral-500"></i>
+                      )}
                     </Button>
                     <Button 
                       variant="ghost" 
                       size="sm" 
                       className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
                       onClick={() => handleDeleteFeature(feature.id)}
-                      disabled={deleteMutation.isPending}
+                      disabled={isLoading}
                     >
-                      <i className="ri-delete-bin-line"></i>
+                      {deleteMutation.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <i className="ri-delete-bin-line"></i>
+                      )}
                     </Button>
                   </div>
                 </div>
@@ -302,11 +337,20 @@ export default function FeatureRequestsPage() {
                 <div className="md:hidden">
                   <FeatureCard 
                     feature={feature}
-                    onClick={() => {}} 
+                    onClick={() => handleEditFeature(feature)} 
                   />
                   <div className="flex justify-end mt-2 space-x-2">
-                    <Button variant="ghost" size="sm">
-                      <i className="ri-edit-line mr-1"></i>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleEditFeature(feature)}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                      ) : (
+                        <i className="ri-edit-line mr-1"></i>
+                      )}
                       Edit
                     </Button>
                     <Button 
@@ -314,9 +358,13 @@ export default function FeatureRequestsPage() {
                       size="sm"
                       className="text-red-500 hover:text-red-700 hover:bg-red-50"
                       onClick={() => handleDeleteFeature(feature.id)}
-                      disabled={deleteMutation.isPending}
+                      disabled={isLoading}
                     >
-                      <i className="ri-delete-bin-line mr-1"></i>
+                      {deleteMutation.isPending ? (
+                        <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                      ) : (
+                        <i className="ri-delete-bin-line mr-1"></i>
+                      )}
                       Delete
                     </Button>
                   </div>
@@ -328,7 +376,11 @@ export default function FeatureRequestsPage() {
       </div>
 
       {/* Feature Form Dialog */}
-      <FeatureForm open={isFeatureFormOpen} onClose={() => setIsFeatureFormOpen(false)} />
+      <FeatureForm 
+        open={isFeatureFormOpen} 
+        onClose={handleFormClose} 
+        feature={selectedFeature}
+      />
     </DashboardLayout>
   );
 }

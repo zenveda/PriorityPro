@@ -38,49 +38,87 @@ export function Sidebar({ className }: SidebarProps) {
         <Link href="/">
           <a className={cn(
             "flex items-center px-3 py-2 text-sm font-medium rounded-md",
-            isActive("/") ? "bg-primary/10 text-primary" : "text-neutral-800 hover:bg-neutral-100"
+            isActive("/") ? "bg-neutral-100 text-neutral-900" : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
           )}>
-            <i className="ri-dashboard-line text-lg mr-3"></i>
+            <i className="ri-layout-grid-line text-lg mr-3"></i>
             Dashboard
           </a>
         </Link>
+        
         <Link href="/features">
           <a className={cn(
             "flex items-center px-3 py-2 text-sm font-medium rounded-md",
-            isActive("/features") ? "bg-primary/10 text-primary" : "text-neutral-800 hover:bg-neutral-100"
+            isActive("/features") ? "bg-neutral-100 text-neutral-900" : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
           )}>
-            <i className="ri-list-check-2 text-lg mr-3"></i>
+            <i className="ri-list-check text-lg mr-3"></i>
             Feature Requests
           </a>
         </Link>
-        <a href="#" className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-neutral-800 hover:bg-neutral-100">
-          <i className="ri-bubble-chart-line text-lg mr-3"></i>
-          Prioritization Matrix
-        </a>
-        <a href="#" className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-neutral-800 hover:bg-neutral-100">
-          <i className="ri-team-line text-lg mr-3"></i>
-          Collaboration
-        </a>
-        <a href="#" className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-neutral-800 hover:bg-neutral-100">
-          <i className="ri-pie-chart-line text-lg mr-3"></i>
-          Reports
-        </a>
-        <a href="#" className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-neutral-800 hover:bg-neutral-100">
-          <i className="ri-settings-line text-lg mr-3"></i>
-          Settings
-        </a>
-        
+
+        <Link href="/matrix">
+          <a className={cn(
+            "flex items-center px-3 py-2 text-sm font-medium rounded-md",
+            isActive("/matrix") ? "bg-neutral-100 text-neutral-900" : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+          )}>
+            <i className="ri-bubble-chart-line text-lg mr-3"></i>
+            Prioritization Matrix
+          </a>
+        </Link>
+
+        <Link href="/collaboration">
+          <a className={cn(
+            "flex items-center px-3 py-2 text-sm font-medium rounded-md",
+            isActive("/collaboration") ? "bg-neutral-100 text-neutral-900" : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+          )}>
+            <i className="ri-team-line text-lg mr-3"></i>
+            Collaboration
+          </a>
+        </Link>
+
+        <Link href="/reports">
+          <a className={cn(
+            "flex items-center px-3 py-2 text-sm font-medium rounded-md",
+            isActive("/reports") ? "bg-neutral-100 text-neutral-900" : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+          )}>
+            <i className="ri-pie-chart-line text-lg mr-3"></i>
+            Reports
+          </a>
+        </Link>
+
+        <Link href="/settings">
+          <a className={cn(
+            "flex items-center px-3 py-2 text-sm font-medium rounded-md",
+            isActive("/settings") ? "bg-neutral-100 text-neutral-900" : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+          )}>
+            <i className="ri-settings-line text-lg mr-3"></i>
+            Settings
+          </a>
+        </Link>
+
+        {/* Integrations Section */}
         <div className="mt-6 pt-6 border-t border-neutral-200">
-          <span className="px-3 text-xs font-semibold text-neutral-400 uppercase tracking-wider">Integrations</span>
+          <h3 className="px-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+            INTEGRATIONS
+          </h3>
           <div className="mt-3 space-y-1">
-            <a href="#" className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-neutral-800 hover:bg-neutral-100">
-              <i className="ri-file-info-line text-lg mr-3"></i>
-              Jira
-            </a>
-            <a href="#" className="flex items-center px-3 py-2 text-sm font-medium rounded-md text-neutral-800 hover:bg-neutral-100">
-              <i className="ri-calendar-line text-lg mr-3"></i>
-              Monday
-            </a>
+            <Link href="/integrations/jira">
+              <a className={cn(
+                "flex items-center px-3 py-2 text-sm font-medium rounded-md",
+                isActive("/integrations/jira") ? "bg-neutral-100 text-neutral-900" : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+              )}>
+                <i className="ri-file-list-line text-lg mr-3"></i>
+                Jira
+              </a>
+            </Link>
+            <Link href="/integrations/monday">
+              <a className={cn(
+                "flex items-center px-3 py-2 text-sm font-medium rounded-md",
+                isActive("/integrations/monday") ? "bg-neutral-100 text-neutral-900" : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+              )}>
+                <i className="ri-calendar-line text-lg mr-3"></i>
+                Monday
+              </a>
+            </Link>
           </div>
         </div>
       </nav>
@@ -95,7 +133,7 @@ export function Sidebar({ className }: SidebarProps) {
           </Avatar>
           <div className="ml-3">
             <p className="text-sm font-medium text-neutral-800">{user?.name}</p>
-            <p className="text-xs text-neutral-400">{user?.role}</p>
+            <p className="text-xs text-neutral-500">{user?.role}</p>
           </div>
           <Button 
             variant="ghost" 

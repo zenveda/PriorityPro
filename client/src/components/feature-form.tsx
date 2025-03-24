@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -6,6 +6,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useMutation } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { Feature, insertFeatureSchema } from "@shared/schema";
 
 import {
   Dialog,
@@ -35,61 +36,105 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { insertFeatureSchema } from "@shared/schema";
 
 interface FeatureFormProps {
   open: boolean;
   onClose: () => void;
+  feature?: Feature | null;
 }
 
 // Extend the insert schema with form validation
 const formSchema = insertFeatureSchema.extend({
   title: z.string().min(3, "Title must be at least 3 characters"),
   description: z.string().min(10, "Description must be at least 10 characters"),
-  customerType: z.enum(["internal", "enterprise", "smb"]),
+  customerType: z.enum(["internal", "enterprise", "smb"]) as z.ZodEnum<["internal", "enterprise", "smb"]>,
+  status: z.enum(["pending", "approved", "rejected", "in_progress", "completed"]),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
-export function FeatureForm({ open, onClose }: FeatureFormProps) {
+export function FeatureForm({ open, onClose, feature }: FeatureFormProps) {
   const { toast } = useToast();
-  const [impactSlider, setImpactSlider] = useState(50);
-  const [effortSlider, setEffortSlider] = useState(50);
+  const [impactSlider, setImpactSlider] = useState(feature?.impactScore ?? 50);
+  const [effortSlider, setEffortSlider] = useState(feature?.effortScore ?? 50);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: "",
-      description: "",
-      impactScore: 50,
-      effortScore: 50,
-      status: "pending",
-      customerType: "internal",
-      customerCount: 0,
-      category: "feature",
-      tags: [],
-      createdById: 0, // Will be set by the server
+      title: feature?.title ?? "",
+      description: feature?.description ?? "",
+      impactScore: feature?.impactScore ?? 50,
+      effortScore: feature?.effortScore ?? 50,
+      status: (feature?.status ?? "pending") as "pending" | "approved" | "rejected" | "in_progress" | "completed",
+      customerType: (feature?.customerType ?? "internal") as "internal" | "enterprise" | "smb",
+      customerCount: feature?.customerCount ?? 0,
+      category: feature?.category ?? "feature",
+      tags: feature?.tags ?? [],
+      createdById: feature?.createdById ?? 0,
     },
   });
 
-  // Create feature mutation
-  const createFeatureMutation = useMutation({
+  // Reset form when feature changes
+  useEffect(() => {
+    if (feature) {
+      form.reset({
+        title: feature.title,
+        description: feature.description,
+        impactScore: feature.impactScore,
+        effortScore: feature.effortScore,
+        status: feature.status as "pending" | "approved" | "rejected" | "in_progress" | "completed",
+        customerType: feature.customerType as "internal" | "enterprise" | "smb",
+        customerCount: feature.customerCount,
+        category: feature.category,
+        tags: feature.tags ?? [],
+        createdById: feature.createdById,
+      });
+      setImpactSlider(feature.impactScore);
+      setEffortSlider(feature.effortScore);
+    }
+  }, [feature, form]);
+
+  // Create/Update feature mutation
+  const featureMutation = useMutation({
     mutationFn: async (values: FormValues) => {
-      const res = await apiRequest("POST", "/api/features", values);
-      return res.json();
+      const payload = {
+        ...values,
+        impactScore: impactSlider,
+        effortScore: effortSlider,
+        totalScore: Math.round((impactSlider + (100 - effortSlider)) / 2),
+      };
+
+      if (feature?.id) {
+        // Update existing feature
+        const res = await apiRequest("PATCH", `/api/features/${feature.id}`, payload);
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({ message: "Failed to parse error response" }));
+          throw new Error(data.message || "Failed to update feature");
+        }
+        return res.json();
+      } else {
+        // Create new feature
+        const res = await apiRequest("POST", "/api/features", payload);
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({ message: "Failed to parse error response" }));
+          throw new Error(data.message || "Failed to create feature");
+        }
+        return res.json();
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/features'] });
       toast({
-        title: "Feature created",
-        description: "The feature has been created successfully",
+        title: feature ? "Feature updated" : "Feature created",
+        description: feature ? "The feature has been updated successfully" : "The feature has been created successfully",
+        variant: "default",
       });
       onClose();
       form.reset();
     },
     onError: (error) => {
       toast({
-        title: "Creation failed",
+        title: feature ? "Update failed" : "Creation failed",
         description: error instanceof Error ? error.message : "Unknown error occurred",
         variant: "destructive",
       });
@@ -97,10 +142,7 @@ export function FeatureForm({ open, onClose }: FeatureFormProps) {
   });
 
   const onSubmit = (values: FormValues) => {
-    // Update the form values with the current slider values
-    values.impactScore = impactSlider;
-    values.effortScore = effortSlider;
-    createFeatureMutation.mutate(values);
+    featureMutation.mutate(values);
   };
 
   // Handle slider change with immediate form update
@@ -133,9 +175,9 @@ export function FeatureForm({ open, onClose }: FeatureFormProps) {
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Add New Feature Request</DialogTitle>
+          <DialogTitle>{feature ? 'Edit Feature Request' : 'Add New Feature Request'}</DialogTitle>
           <DialogDescription>
-            Create a new feature request to be prioritized by the team.
+            {feature ? 'Update the feature request details.' : 'Create a new feature request to be prioritized by the team.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -287,21 +329,21 @@ export function FeatureForm({ open, onClose }: FeatureFormProps) {
                 type="button" 
                 variant="outline" 
                 onClick={onClose}
-                disabled={createFeatureMutation.isPending}
+                disabled={featureMutation.isPending}
               >
                 Cancel
               </Button>
               <Button 
                 type="submit"
-                disabled={createFeatureMutation.isPending}
+                disabled={featureMutation.isPending}
               >
-                {createFeatureMutation.isPending ? (
+                {featureMutation.isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating...
+                    {feature ? 'Updating...' : 'Creating...'}
                   </>
                 ) : (
-                  "Create Feature"
+                  feature ? 'Update Feature' : 'Create Feature'
                 )}
               </Button>
             </DialogFooter>
